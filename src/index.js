@@ -3,7 +3,7 @@ import { useState, useEffect } from 'preact/hooks';
 import './styles.css';
 
 const API_KEY = 'e712191becdbc9a8e192e589388fd9e6';
-const BASE_URL = 'https://api.exchangeratesapi.io/v1/latest';
+const BASE_URL = 'http://api.exchangeratesapi.io/v1/latest';
 
 const CurrencyConverter = () => {
   const [amount1, setAmount1] = useState('0,00');
@@ -20,17 +20,35 @@ const CurrencyConverter = () => {
   const parseNumber = (str) => parseFloat(str.replace(',', '.'));
 
   const fetchExchangeRates = async () => {
+    const storedRates = localStorage.getItem('exchangeRates');
+    const storedTimestamp = localStorage.getItem('exchangeRatesTimestamp');
+
+    if (storedRates && storedTimestamp) {
+      const currentTime = new Date().getTime();
+      const storedTime = parseInt(storedTimestamp);
+
+      // Check if stored rates are less than 24 hours old
+      if (currentTime - storedTime < 24 * 60 * 60 * 1000) {
+        setRates(JSON.parse(storedRates));
+        setExchangeTime(`Exchange Time: ${new Date(storedTime).toLocaleString()}`);
+        return;
+      }
+    }
+
     try {
-      const response = await fetch(`https://cors-anywhere.herokuapp.com/${BASE_URL}?access_key=${API_KEY}`);
+      const response = await fetch(`${BASE_URL}?access_key=${API_KEY}`);
       const data = await response.json();
       if (data.success) {
-        setRates({ EUR: 1, ...data.rates });
+        const newRates = { EUR: 1, ...data.rates };
+        setRates(newRates);
         const date = new Date(data.timestamp * 1000);
-        setExchangeTime(`Exchange Time: ${date.getDate().toString().padStart(2, '0')}/${(date.getMonth() + 1).toString().padStart(2, '0')}/${date.getFullYear().toString().slice(-2)} ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`);
+        const timeString = `Exchange Time: ${date.toLocaleString()}`;
+        setExchangeTime(timeString);
+        localStorage.setItem('exchangeRates', JSON.stringify(newRates));
+        localStorage.setItem('exchangeRatesTimestamp', date.getTime().toString());
         setError(null);
       } else {
-        console.error('Error fetching exchange rates:', data.error);
-        setError(`Failed to fetch latest rates: ${data.error.type}. Using stored rates.`);
+        throw new Error(data.error.type);
       }
     } catch (error) {
       console.error('Error fetching exchange rates:', error);
