@@ -12,6 +12,7 @@ const CurrencyConverter = () => {
   const [currency2, setCurrency2] = useState('USD');
   const [exchangeTime, setExchangeTime] = useState('');
   const [rates, setRates] = useState({});
+  const [exchangeRate, setExchangeRate] = useState('');
 
   const formatNumber = (num) => num.toFixed(2).replace('.', ',');
   const parseNumber = (str) => parseFloat(str.replace(',', '.'));
@@ -24,6 +25,7 @@ const CurrencyConverter = () => {
         setRates(data.rates);
         const date = new Date(data.timestamp * 1000);
         setExchangeTime(`Exchange Time: ${date.getDate().toString().padStart(2, '0')}/${(date.getMonth() + 1).toString().padStart(2, '0')}/${date.getFullYear().toString().slice(-2)} ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`);
+        updateExchangeRate(currency1, currency2, data.rates);
       } else {
         console.error('Error fetching exchange rates:', data.error);
       }
@@ -39,8 +41,22 @@ const CurrencyConverter = () => {
   useEffect(() => {
     if (Object.keys(rates).length > 0) {
       convertCurrency(amount1, currency1, currency2);
+      updateExchangeRate(currency1, currency2, rates);
     }
   }, [rates, currency1, currency2]);
+
+  const updateExchangeRate = (from, to, currentRates) => {
+    if (from === to) {
+      setExchangeRate(`1 ${from} = 1 ${to}`);
+    } else if (from === 'EUR') {
+      setExchangeRate(`1 ${from} = ${formatNumber(currentRates[to])} ${to}`);
+    } else if (to === 'EUR') {
+      setExchangeRate(`1 ${from} = ${formatNumber(1 / currentRates[from])} ${to}`);
+    } else {
+      const rate = currentRates[to] / currentRates[from];
+      setExchangeRate(`1 ${from} = ${formatNumber(rate)} ${to}`);
+    }
+  };
 
   const convertCurrency = (value, from, to) => {
     if (value === '0,00' || from === to) {
@@ -97,6 +113,7 @@ const CurrencyConverter = () => {
           ))}
         </select>
       </div>
+      <p className="exchange-rate">{exchangeRate}</p>
     </div>
   );
 };
