@@ -116,6 +116,10 @@ const CurrencyConverter = () => {
     convertCurrency(amount1, currency1, e.target.value);
   };
 
+  const getSortedCurrencies = () => {
+    return Object.keys(rates).sort((a, b) => a.localeCompare(b));
+  };
+
   return (
     <div className="converter-widget">
       <div className="converter-result">
@@ -128,7 +132,7 @@ const CurrencyConverter = () => {
         <div className="input-group">
           <input type="text" value={amount1} onChange={handleAmount1Change} />
           <select value={currency1} onChange={handleCurrency1Change}>
-            {Object.keys(rates).map(currency => (
+            {getSortedCurrencies().map(currency => (
               <option key={currency} value={currency}>{currency}</option>
             ))}
           </select>
@@ -136,7 +140,7 @@ const CurrencyConverter = () => {
         <div className="input-group">
           <input type="text" value={amount2} onChange={handleAmount2Change} />
           <select value={currency2} onChange={handleCurrency2Change}>
-            {Object.keys(rates).map(currency => (
+            {getSortedCurrencies().map(currency => (
               <option key={currency} value={currency}>{currency}</option>
             ))}
           </select>
