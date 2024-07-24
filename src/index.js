@@ -11,7 +11,7 @@ const CurrencyConverter = () => {
   const [currency1, setCurrency1] = useState('EUR');
   const [currency2, setCurrency2] = useState('USD');
   const [exchangeTime, setExchangeTime] = useState('');
-  const [rates, setRates] = useState({ EUR: 1, USD: 1.1 }); // Default rates
+  const [rates, setRates] = useState({ EUR: 1 });
   const [exchangeRate, setExchangeRate] = useState('');
   const [error, setError] = useState(null);
 
