@@ -12,7 +12,7 @@ const CurrencyConverter = () => {
 
   useEffect(() => {
     fetchExchangeRate();
-  }, [fromCurrency, toCurrency]);
+  }, [fromCurrency, toCurrency, amount]);
 
   const fetchExchangeRate = async () => {
     try {
@@ -34,36 +34,28 @@ const CurrencyConverter = () => {
   const handleAmountChange = (e) => {
     const value = parseFloat(e.target.value);
     setAmount(value);
-    convertCurrency(value, exchangeRate);
-  };
-
-  const handleCurrencyChange = (e, type) => {
-    const value = e.target.value;
-    if (type === 'from') {
-      setFromCurrency(value);
-    } else {
-      setToCurrency(value);
-    }
   };
 
   return (
     <div className="converter">
-      <h2>{amount} {fromCurrency} equals</h2>
-      <h1>{convertedAmount} {toCurrency}</h1>
-      <p>{date} UTC · Disclaimer</p>
+      <div className="result">
+        <h2>{amount} {fromCurrency} equals</h2>
+        <h1>{convertedAmount} {toCurrency}</h1>
+        <p>{date} UTC · Disclaimer</p>
+      </div>
       <div className="input-group">
         <input type="number" value={amount} onChange={handleAmountChange} />
-        <select value={fromCurrency} onChange={(e) => handleCurrencyChange(e, 'from')}>
-          <option value="USD">USD</option>
-          <option value="EUR">EUR</option>
+        <select value={fromCurrency} onChange={(e) => setFromCurrency(e.target.value)}>
+          <option value="USD">United States Dollar</option>
+          <option value="EUR">Euro</option>
           {/* Add more currency options */}
         </select>
       </div>
       <div className="input-group">
         <input type="number" value={convertedAmount} readOnly />
-        <select value={toCurrency} onChange={(e) => handleCurrencyChange(e, 'to')}>
-          <option value="EUR">EUR</option>
-          <option value="USD">USD</option>
+        <select value={toCurrency} onChange={(e) => setToCurrency(e.target.value)}>
+          <option value="EUR">Euro</option>
+          <option value="USD">United States Dollar</option>
           {/* Add more currency options */}
         </select>
       </div>
