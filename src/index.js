@@ -2,7 +2,7 @@ import { h, render } from 'preact';
 import { useState, useEffect } from 'preact/hooks';
 import './styles.css';
 
-const API_KEY = 'cd4b0dcb2ae44818adee9d2420c46c84'; // Replace with your actual API key
+const API_KEY = 'YOUR_CURRENCYFREAKS_API_KEY'; // Replace with your actual API key
 const BASE_URL = 'https://api.currencyfreaks.com/latest?apikey=';
 
 const CurrencyConverter = () => {
@@ -20,39 +20,7 @@ const CurrencyConverter = () => {
   const parseNumber = (str) => parseFloat(str.replace(',', '.'));
 
   const fetchExchangeRates = async () => {
-    const storedRates = localStorage.getItem('exchangeRates');
-    const storedTimestamp = localStorage.getItem('exchangeRatesTimestamp');
-
-    if (storedRates && storedTimestamp) {
-      const currentTime = new Date().getTime();
-      const storedTime = parseInt(storedTimestamp);
-
-      // Check if stored rates are less than 12 hours old (for twice daily updates)
-      if (currentTime - storedTime < 12 * 60 * 60 * 1000) {
-        setRates(JSON.parse(storedRates));
-        setExchangeTime(`Exchange Time: ${new Date(storedTime).toLocaleString()}`);
-        return;
-      }
-    }
-
-    try {
-      const response = await fetch(`${BASE_URL}${API_KEY}`);
-      const data = await response.json();
-      if (data.rates) {
-        setRates(data.rates);
-        const date = new Date(data.date);
-        const timeString = `Exchange Time: ${date.toLocaleString()}`;
-        setExchangeTime(timeString);
-        localStorage.setItem('exchangeRates', JSON.stringify(data.rates));
-        localStorage.setItem('exchangeRatesTimestamp', date.getTime().toString());
-        setError(null);
-      } else {
-        throw new Error('Failed to fetch rates');
-      }
-    } catch (error) {
-      console.error('Error fetching exchange rates:', error);
-      setError(`Failed to fetch latest rates: ${error.message}. Using stored rates.`);
-    }
+    // ... (keep the fetchExchangeRates function as it was)
   };
 
   useEffect(() => {
@@ -76,8 +44,12 @@ const CurrencyConverter = () => {
   };
 
   const convertCurrency = (value, from, to) => {
-    if (value === '0,00' || from === to) {
+    if (value === '0,00') {
       setAmount2('0,00');
+      return;
+    }
+    if (from === to) {
+      setAmount2(value);
       return;
     }
     const usdValue = parseNumber(value) / parseFloat(rates[from]);
@@ -94,17 +66,23 @@ const CurrencyConverter = () => {
   const handleAmount2Change = (e) => {
     const value = e.target.value.replace(/[^0-9,]/g, '');
     setAmount2(value);
-    const usdValue = parseNumber(value) / parseFloat(rates[currency2]);
-    const convertedValue = usdValue * parseFloat(rates[currency1]);
-    setAmount1(formatNumber(convertedValue));
+    if (currency1 === currency2) {
+      setAmount1(value);
+    } else {
+      const usdValue = parseNumber(value) / parseFloat(rates[currency2]);
+      const convertedValue = usdValue * parseFloat(rates[currency1]);
+      setAmount1(formatNumber(convertedValue));
+    }
   };
 
   const handleCurrency1Change = (e) => {
     setCurrency1(e.target.value);
+    convertCurrency(amount1, e.target.value, currency2);
   };
 
   const handleCurrency2Change = (e) => {
     setCurrency2(e.target.value);
+    convertCurrency(amount1, currency1, e.target.value);
   };
 
   return (
