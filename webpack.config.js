@@ -2,7 +2,7 @@ const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 
 module.exports = {
-  entry: './index.js',
+  entry: './src/index.js',
   output: {
     path: path.resolve(__dirname, 'dist'),
     filename: 'bundle.js',
@@ -16,7 +16,9 @@ module.exports = {
           loader: 'babel-loader',
           options: {
             presets: ['@babel/preset-env'],
-            plugins: [['@babel/plugin-transform-react-jsx', { pragma: 'h' }]],
+            plugins: [
+              ['@babel/plugin-transform-react-jsx', { pragma: 'h' }]
+            ],
           },
         },
       },
