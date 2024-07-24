@@ -2,8 +2,8 @@ import { h, render } from 'preact';
 import { useState, useEffect } from 'preact/hooks';
 import './styles.css';
 
-const API_KEY = 'e712191becdbc9a8e192e589388fd9e6';
-const BASE_URL = 'http://api.exchangeratesapi.io/v1/latest';
+const API_KEY = 'cd4b0dcb2ae44818adee9d2420c46c84'; // Replace with your actual API key
+const BASE_URL = 'https://api.currencyfreaks.com/latest?apikey=';
 
 const CurrencyConverter = () => {
   const [amount1, setAmount1] = useState('0,00');
@@ -11,7 +11,7 @@ const CurrencyConverter = () => {
   const [currency1, setCurrency1] = useState('EUR');
   const [currency2, setCurrency2] = useState('USD');
   const [exchangeTime, setExchangeTime] = useState('');
-  const [rates, setRates] = useState({ EUR: 1 });
+  const [rates, setRates] = useState({});
   const [exchangeRate, setExchangeRate] = useState('');
   const [error, setError] = useState(null);
 
@@ -27,8 +27,8 @@ const CurrencyConverter = () => {
       const currentTime = new Date().getTime();
       const storedTime = parseInt(storedTimestamp);
 
-      // Check if stored rates are less than 24 hours old
-      if (currentTime - storedTime < 24 * 60 * 60 * 1000) {
+      // Check if stored rates are less than 12 hours old (for twice daily updates)
+      if (currentTime - storedTime < 12 * 60 * 60 * 1000) {
         setRates(JSON.parse(storedRates));
         setExchangeTime(`Exchange Time: ${new Date(storedTime).toLocaleString()}`);
         return;
@@ -36,19 +36,18 @@ const CurrencyConverter = () => {
     }
 
     try {
-      const response = await fetch(`${BASE_URL}?access_key=${API_KEY}`);
+      const response = await fetch(`${BASE_URL}${API_KEY}`);
       const data = await response.json();
-      if (data.success) {
-        const newRates = { EUR: 1, ...data.rates };
-        setRates(newRates);
-        const date = new Date(data.timestamp * 1000);
+      if (data.rates) {
+        setRates(data.rates);
+        const date = new Date(data.date);
         const timeString = `Exchange Time: ${date.toLocaleString()}`;
         setExchangeTime(timeString);
-        localStorage.setItem('exchangeRates', JSON.stringify(newRates));
+        localStorage.setItem('exchangeRates', JSON.stringify(data.rates));
         localStorage.setItem('exchangeRatesTimestamp', date.getTime().toString());
         setError(null);
       } else {
-        throw new Error(data.error.type);
+        throw new Error('Failed to fetch rates');
       }
     } catch (error) {
       console.error('Error fetching exchange rates:', error);
@@ -61,15 +60,17 @@ const CurrencyConverter = () => {
   }, []);
 
   useEffect(() => {
-    convertCurrency(amount1, currency1, currency2);
-    updateExchangeRate(currency1, currency2);
+    if (Object.keys(rates).length > 0) {
+      convertCurrency(amount1, currency1, currency2);
+      updateExchangeRate(currency1, currency2);
+    }
   }, [rates, currency1, currency2, amount1]);
 
   const updateExchangeRate = (from, to) => {
     if (from === to) {
       setExchangeRate(`1 ${from} = 1,000000 ${to}`);
     } else {
-      const rate = rates[to] / rates[from];
+      const rate = parseFloat(rates[to]) / parseFloat(rates[from]);
       setExchangeRate(`1 ${from} = ${formatExchangeRate(rate)} ${to}`);
     }
   };
@@ -79,8 +80,8 @@ const CurrencyConverter = () => {
       setAmount2('0,00');
       return;
     }
-    const eurValue = from === 'EUR' ? parseNumber(value) : parseNumber(value) / rates[from];
-    const convertedValue = to === 'EUR' ? eurValue : eurValue * rates[to];
+    const usdValue = parseNumber(value) / parseFloat(rates[from]);
+    const convertedValue = usdValue * parseFloat(rates[to]);
     setAmount2(formatNumber(convertedValue));
   };
 
@@ -93,8 +94,8 @@ const CurrencyConverter = () => {
   const handleAmount2Change = (e) => {
     const value = e.target.value.replace(/[^0-9,]/g, '');
     setAmount2(value);
-    const eurValue = currency2 === 'EUR' ? parseNumber(value) : parseNumber(value) / rates[currency2];
-    const convertedValue = currency1 === 'EUR' ? eurValue : eurValue * rates[currency1];
+    const usdValue = parseNumber(value) / parseFloat(rates[currency2]);
+    const convertedValue = usdValue * parseFloat(rates[currency1]);
     setAmount1(formatNumber(convertedValue));
   };
 
