@@ -2,7 +2,7 @@ import { h, render } from 'preact';
 import { useState, useEffect } from 'preact/hooks';
 import './styles.css';
 
-const API_KEY = 'cd4b0dcb2ae44818adee9d2420c46c84'; // Replace with your actual API key
+const API_KEY = 'cd4b0dcb2ae44818adee9d2420c46c84';
 const BASE_URL = 'https://api.currencyfreaks.com/latest?apikey=';
 
 const CurrencyConverter = () => {
@@ -20,7 +20,38 @@ const CurrencyConverter = () => {
   const parseNumber = (str) => parseFloat(str.replace(',', '.'));
 
   const fetchExchangeRates = async () => {
-    // ... (keep the fetchExchangeRates function as it was)
+    const storedRates = localStorage.getItem('exchangeRates');
+    const storedTimestamp = localStorage.getItem('exchangeRatesTimestamp');
+
+    if (storedRates && storedTimestamp) {
+      const currentTime = new Date().getTime();
+      const storedTime = parseInt(storedTimestamp);
+
+      if (currentTime - storedTime < 12 * 60 * 60 * 1000) {
+        setRates(JSON.parse(storedRates));
+        setExchangeTime(`Exchange Time: ${new Date(storedTime).toLocaleString()}`);
+        return;
+      }
+    }
+
+    try {
+      const response = await fetch(`${BASE_URL}${API_KEY}`);
+      const data = await response.json();
+      if (data.rates) {
+        setRates(data.rates);
+        const date = new Date(data.date);
+        const timeString = `Exchange Time: ${date.toLocaleString()}`;
+        setExchangeTime(timeString);
+        localStorage.setItem('exchangeRates', JSON.stringify(data.rates));
+        localStorage.setItem('exchangeRatesTimestamp', date.getTime().toString());
+        setError(null);
+      } else {
+        throw new Error('Failed to fetch rates');
+      }
+    } catch (error) {
+      console.error('Error fetching exchange rates:', error);
+      setError(`Failed to fetch latest rates: ${error.message}. Using stored rates.`);
+    }
   };
 
   useEffect(() => {
