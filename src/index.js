@@ -16,6 +16,7 @@ const CurrencyConverter = () => {
   const [error, setError] = useState(null);
 
   const formatNumber = (num) => num.toFixed(2).replace('.', ',');
+  const formatExchangeRate = (num) => num.toFixed(6).replace('.', ',');
   const parseNumber = (str) => parseFloat(str.replace(',', '.'));
 
   const fetchExchangeRates = async () => {
@@ -29,11 +30,11 @@ const CurrencyConverter = () => {
         setError(null);
       } else {
         console.error('Error fetching exchange rates:', data.error);
-        setError('Failed to fetch latest rates. Using stored rates.');
+        setError(`Failed to fetch latest rates: ${data.error.type}. Using stored rates.`);
       }
     } catch (error) {
       console.error('Error fetching exchange rates:', error);
-      setError('Failed to fetch latest rates. Using stored rates.');
+      setError(`Failed to fetch latest rates: ${error.message}. Using stored rates.`);
     }
   };
 
@@ -48,10 +49,10 @@ const CurrencyConverter = () => {
 
   const updateExchangeRate = (from, to) => {
     if (from === to) {
-      setExchangeRate(`1 ${from} = 1 ${to}`);
+      setExchangeRate(`1 ${from} = 1,000000 ${to}`);
     } else {
       const rate = rates[to] / rates[from];
-      setExchangeRate(`1 ${from} = ${formatNumber(rate)} ${to}`);
+      setExchangeRate(`1 ${from} = ${formatExchangeRate(rate)} ${to}`);
     }
   };
 
