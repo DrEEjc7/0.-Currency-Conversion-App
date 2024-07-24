@@ -7,43 +7,35 @@ const CurrencyConverter = () => {
   const [amount2, setAmount2] = useState(0);
   const [currency1, setCurrency1] = useState('USD');
   const [currency2, setCurrency2] = useState('EUR');
-  const [exchangeRate, setExchangeRate] = useState(null);
   const [date, setDate] = useState(null);
-
-  useEffect(() => {
-    fetchExchangeRate();
-  }, [currency1, currency2]);
 
   const fetchExchangeRate = async () => {
     try {
-      const response = await fetch(`https://cdn.jsdelivr.net/gh/fawazahmed0/currency-api@1/latest/currencies/${currency1.toLowerCase()}/${currency2.toLowerCase()}.json`);
+      const response = await fetch(`https://api.frankfurter.app/latest?amount=${amount1}&from=${currency1}&to=${currency2}`);
       const data = await response.json();
-      setExchangeRate(data[currency2.toLowerCase()]);
-      setDate(new Date().toUTCString());
-      convertCurrency(amount1, data[currency2.toLowerCase()], true);
+      setAmount2(Number(data.rates[currency2]).toFixed(2));
+      setDate(data.date);
     } catch (error) {
       console.error('Error fetching exchange rate:', error);
     }
   };
 
-  const convertCurrency = (value, rate, isAmount1) => {
-    if (isAmount1) {
-      setAmount1(value);
-      setAmount2((value * rate).toFixed(2));
+  useEffect(() => {
+    if (currency1 !== currency2) {
+      fetchExchangeRate();
     } else {
-      setAmount2(value);
-      setAmount1((value / rate).toFixed(2));
+      setAmount2(amount1);
+      setDate(new Date().toISOString().split('T')[0]);
     }
-  };
+  }, [currency1, currency2, amount1]);
 
   const handleAmount1Change = (e) => {
-    const value = parseFloat(e.target.value);
-    convertCurrency(value, exchangeRate, true);
+    setAmount1(e.target.value);
   };
 
   const handleAmount2Change = (e) => {
-    const value = parseFloat(e.target.value);
-    convertCurrency(value, exchangeRate, false);
+    setAmount2(e.target.value);
+    setAmount1((e.target.value / (amount2 / amount1)).toFixed(2));
   };
 
   const handleCurrency1Change = (e) => {
@@ -68,6 +60,12 @@ const CurrencyConverter = () => {
           <option value="EUR">Euro</option>
           <option value="GBP">British Pound</option>
           <option value="JPY">Japanese Yen</option>
+          <option value="AUD">Australian Dollar</option>
+          <option value="CAD">Canadian Dollar</option>
+          <option value="CHF">Swiss Franc</option>
+          <option value="CNY">Chinese Yuan</option>
+          <option value="SEK">Swedish Krona</option>
+          <option value="NZD">New Zealand Dollar</option>
         </select>
       </div>
       <div className="input-group">
@@ -77,6 +75,12 @@ const CurrencyConverter = () => {
           <option value="USD">United States Dollar</option>
           <option value="GBP">British Pound</option>
           <option value="JPY">Japanese Yen</option>
+          <option value="AUD">Australian Dollar</option>
+          <option value="CAD">Canadian Dollar</option>
+          <option value="CHF">Swiss Franc</option>
+          <option value="CNY">Chinese Yuan</option>
+          <option value="SEK">Swedish Krona</option>
+          <option value="NZD">New Zealand Dollar</option>
         </select>
       </div>
     </div>
