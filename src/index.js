@@ -2,7 +2,7 @@ import { h, render } from 'preact';
 import { useState, useEffect } from 'preact/hooks';
 import './styles.css';
 
-const API_KEY = 'YOUR_CURRENCYFREAKS_API_KEY'; // Replace with your actual API key
+const API_KEY = 'cd4b0dcb2ae44818adee9d2420c46c84'; // Replace with your actual API key
 const BASE_URL = 'https://api.currencyfreaks.com/latest?apikey=';
 
 const CurrencyConverter = () => {
