@@ -2,46 +2,68 @@ import { h, render } from 'preact';
 import { useState, useEffect } from 'preact/hooks';
 import './styles.css';
 
+const API_KEY = 'e712191becdbc9a8e192e589388fd9e6';
+const BASE_URL = 'http://api.exchangeratesapi.io/v1/latest';
+
 const CurrencyConverter = () => {
   const [amount1, setAmount1] = useState('0,00');
   const [amount2, setAmount2] = useState('0,00');
-  const [currency1, setCurrency1] = useState('USD');
-  const [currency2, setCurrency2] = useState('EUR');
+  const [currency1, setCurrency1] = useState('EUR');
+  const [currency2, setCurrency2] = useState('USD');
   const [exchangeTime, setExchangeTime] = useState('');
+  const [rates, setRates] = useState({});
 
   const formatNumber = (num) => num.toFixed(2).replace('.', ',');
   const parseNumber = (str) => parseFloat(str.replace(',', '.'));
 
-  const fetchExchangeRate = async (value, from, to) => {
-    if (value === '0,00' || from === to) {
-      setAmount2('0,00');
-      return;
-    }
+  const fetchExchangeRates = async () => {
     try {
-      const response = await fetch(`https://api.frankfurter.app/latest?amount=${parseNumber(value)}&from=${from}&to=${to}`);
+      const response = await fetch(`${BASE_URL}?access_key=${API_KEY}`);
       const data = await response.json();
-      setAmount2(formatNumber(data.rates[to]));
-      const date = new Date();
-      setExchangeTime(`Exchange Time: ${date.getDate().toString().padStart(2, '0')}/${(date.getMonth() + 1).toString().padStart(2, '0')}/${date.getFullYear().toString().slice(-2)} ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`);
+      if (data.success) {
+        setRates(data.rates);
+        const date = new Date(data.timestamp * 1000);
+        setExchangeTime(`Exchange Time: ${date.getDate().toString().padStart(2, '0')}/${(date.getMonth() + 1).toString().padStart(2, '0')}/${date.getFullYear().toString().slice(-2)} ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`);
+      } else {
+        console.error('Error fetching exchange rates:', data.error);
+      }
     } catch (error) {
-      console.error('Error fetching exchange rate:', error);
+      console.error('Error fetching exchange rates:', error);
     }
   };
 
   useEffect(() => {
-    fetchExchangeRate(amount1, currency1, currency2);
-  }, [currency1, currency2]);
+    fetchExchangeRates();
+  }, []);
+
+  useEffect(() => {
+    if (Object.keys(rates).length > 0) {
+      convertCurrency(amount1, currency1, currency2);
+    }
+  }, [rates, currency1, currency2]);
+
+  const convertCurrency = (value, from, to) => {
+    if (value === '0,00' || from === to) {
+      setAmount2('0,00');
+      return;
+    }
+    const eurValue = from === 'EUR' ? parseNumber(value) : parseNumber(value) / rates[from];
+    const convertedValue = to === 'EUR' ? eurValue : eurValue * rates[to];
+    setAmount2(formatNumber(convertedValue));
+  };
 
   const handleAmount1Change = (e) => {
     const value = e.target.value.replace(/[^0-9,]/g, '');
     setAmount1(value);
-    fetchExchangeRate(value, currency1, currency2);
+    convertCurrency(value, currency1, currency2);
   };
 
   const handleAmount2Change = (e) => {
     const value = e.target.value.replace(/[^0-9,]/g, '');
     setAmount2(value);
-    fetchExchangeRate(value, currency2, currency1);
+    const eurValue = currency2 === 'EUR' ? parseNumber(value) : parseNumber(value) / rates[currency2];
+    const convertedValue = currency1 === 'EUR' ? eurValue : eurValue * rates[currency1];
+    setAmount1(formatNumber(convertedValue));
   };
 
   const handleCurrency1Change = (e) => {
@@ -62,31 +84,17 @@ const CurrencyConverter = () => {
       <div className="input-group">
         <input type="text" value={amount1} onChange={handleAmount1Change} />
         <select value={currency1} onChange={handleCurrency1Change}>
-          <option value="USD">USD</option>
-          <option value="EUR">EUR</option>
-          <option value="GBP">GBP</option>
-          <option value="JPY">JPY</option>
-          <option value="AUD">AUD</option>
-          <option value="CAD">CAD</option>
-          <option value="CHF">CHF</option>
-          <option value="CNY">CNY</option>
-          <option value="SEK">SEK</option>
-          <option value="NZD">NZD</option>
+          {Object.keys(rates).map(currency => (
+            <option key={currency} value={currency}>{currency}</option>
+          ))}
         </select>
       </div>
       <div className="input-group">
         <input type="text" value={amount2} onChange={handleAmount2Change} />
         <select value={currency2} onChange={handleCurrency2Change}>
-          <option value="EUR">EUR</option>
-          <option value="USD">USD</option>
-          <option value="GBP">GBP</option>
-          <option value="JPY">JPY</option>
-          <option value="AUD">AUD</option>
-          <option value="CAD">CAD</option>
-          <option value="CHF">CHF</option>
-          <option value="CNY">CNY</option>
-          <option value="SEK">SEK</option>
-          <option value="NZD">NZD</option>
+          {Object.keys(rates).map(currency => (
+            <option key={currency} value={currency}>{currency}</option>
+          ))}
         </select>
       </div>
     </div>
