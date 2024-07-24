@@ -11,8 +11,9 @@ const CurrencyConverter = () => {
   const [currency1, setCurrency1] = useState('EUR');
   const [currency2, setCurrency2] = useState('USD');
   const [exchangeTime, setExchangeTime] = useState('');
-  const [rates, setRates] = useState({});
+  const [rates, setRates] = useState({ EUR: 1, USD: 1.1 }); // Default rates
   const [exchangeRate, setExchangeRate] = useState('');
+  const [error, setError] = useState(null);
 
   const formatNumber = (num) => num.toFixed(2).replace('.', ',');
   const parseNumber = (str) => parseFloat(str.replace(',', '.'));
@@ -22,15 +23,17 @@ const CurrencyConverter = () => {
       const response = await fetch(`${BASE_URL}?access_key=${API_KEY}`);
       const data = await response.json();
       if (data.success) {
-        setRates(data.rates);
+        setRates({ EUR: 1, ...data.rates });
         const date = new Date(data.timestamp * 1000);
         setExchangeTime(`Exchange Time: ${date.getDate().toString().padStart(2, '0')}/${(date.getMonth() + 1).toString().padStart(2, '0')}/${date.getFullYear().toString().slice(-2)} ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`);
-        updateExchangeRate(currency1, currency2, data.rates);
+        setError(null);
       } else {
         console.error('Error fetching exchange rates:', data.error);
+        setError('Failed to fetch latest rates. Using stored rates.');
       }
     } catch (error) {
       console.error('Error fetching exchange rates:', error);
+      setError('Failed to fetch latest rates. Using stored rates.');
     }
   };
 
@@ -39,21 +42,15 @@ const CurrencyConverter = () => {
   }, []);
 
   useEffect(() => {
-    if (Object.keys(rates).length > 0) {
-      convertCurrency(amount1, currency1, currency2);
-      updateExchangeRate(currency1, currency2, rates);
-    }
-  }, [rates, currency1, currency2]);
+    convertCurrency(amount1, currency1, currency2);
+    updateExchangeRate(currency1, currency2);
+  }, [rates, currency1, currency2, amount1]);
 
-  const updateExchangeRate = (from, to, currentRates) => {
+  const updateExchangeRate = (from, to) => {
     if (from === to) {
       setExchangeRate(`1 ${from} = 1 ${to}`);
-    } else if (from === 'EUR') {
-      setExchangeRate(`1 ${from} = ${formatNumber(currentRates[to])} ${to}`);
-    } else if (to === 'EUR') {
-      setExchangeRate(`1 ${from} = ${formatNumber(1 / currentRates[from])} ${to}`);
     } else {
-      const rate = currentRates[to] / currentRates[from];
+      const rate = rates[to] / rates[from];
       setExchangeRate(`1 ${from} = ${formatNumber(rate)} ${to}`);
     }
   };
@@ -96,6 +93,7 @@ const CurrencyConverter = () => {
         <h2>{amount1} {currency1} equals</h2>
         <h1>{amount2} {currency2}</h1>
         <p>{exchangeTime}</p>
+        {error && <p className="error">{error}</p>}
       </div>
       <div className="input-group">
         <input type="text" value={amount1} onChange={handleAmount1Change} />
