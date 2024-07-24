@@ -3,39 +3,45 @@ import { useState, useEffect } from 'preact/hooks';
 import './styles.css';
 
 const CurrencyConverter = () => {
-  const [amount1, setAmount1] = useState(500);
-  const [amount2, setAmount2] = useState(0);
+  const [amount1, setAmount1] = useState('0,00');
+  const [amount2, setAmount2] = useState('0,00');
   const [currency1, setCurrency1] = useState('USD');
   const [currency2, setCurrency2] = useState('EUR');
-  const [date, setDate] = useState(null);
+  const [exchangeTime, setExchangeTime] = useState('');
 
-  const fetchExchangeRate = async () => {
+  const formatNumber = (num) => num.toFixed(2).replace('.', ',');
+  const parseNumber = (str) => parseFloat(str.replace(',', '.'));
+
+  const fetchExchangeRate = async (value, from, to) => {
+    if (value === '0,00' || from === to) {
+      setAmount2('0,00');
+      return;
+    }
     try {
-      const response = await fetch(`https://api.frankfurter.app/latest?amount=${amount1}&from=${currency1}&to=${currency2}`);
+      const response = await fetch(`https://api.frankfurter.app/latest?amount=${parseNumber(value)}&from=${from}&to=${to}`);
       const data = await response.json();
-      setAmount2(Number(data.rates[currency2]).toFixed(2));
-      setDate(data.date);
+      setAmount2(formatNumber(data.rates[to]));
+      const date = new Date();
+      setExchangeTime(`Exchange Time: ${date.getDate().toString().padStart(2, '0')}/${(date.getMonth() + 1).toString().padStart(2, '0')}/${date.getFullYear().toString().slice(-2)} ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`);
     } catch (error) {
       console.error('Error fetching exchange rate:', error);
     }
   };
 
   useEffect(() => {
-    if (currency1 !== currency2) {
-      fetchExchangeRate();
-    } else {
-      setAmount2(amount1);
-      setDate(new Date().toISOString().split('T')[0]);
-    }
-  }, [currency1, currency2, amount1]);
+    fetchExchangeRate(amount1, currency1, currency2);
+  }, [currency1, currency2]);
 
   const handleAmount1Change = (e) => {
-    setAmount1(e.target.value);
+    const value = e.target.value.replace(/[^0-9,]/g, '');
+    setAmount1(value);
+    fetchExchangeRate(value, currency1, currency2);
   };
 
   const handleAmount2Change = (e) => {
-    setAmount2(e.target.value);
-    setAmount1((e.target.value / (amount2 / amount1)).toFixed(2));
+    const value = e.target.value.replace(/[^0-9,]/g, '');
+    setAmount2(value);
+    fetchExchangeRate(value, currency2, currency1);
   };
 
   const handleCurrency1Change = (e) => {
@@ -51,36 +57,36 @@ const CurrencyConverter = () => {
       <div className="result">
         <h2>{amount1} {currency1} equals</h2>
         <h1>{amount2} {currency2}</h1>
-        <p>{date} · Disclaimer</p>
+        <p>{exchangeTime}</p>
       </div>
       <div className="input-group">
-        <input type="number" value={amount1} onChange={handleAmount1Change} />
+        <input type="text" value={amount1} onChange={handleAmount1Change} />
         <select value={currency1} onChange={handleCurrency1Change}>
-          <option value="USD">United States Dollar</option>
-          <option value="EUR">Euro</option>
-          <option value="GBP">British Pound</option>
-          <option value="JPY">Japanese Yen</option>
-          <option value="AUD">Australian Dollar</option>
-          <option value="CAD">Canadian Dollar</option>
-          <option value="CHF">Swiss Franc</option>
-          <option value="CNY">Chinese Yuan</option>
-          <option value="SEK">Swedish Krona</option>
-          <option value="NZD">New Zealand Dollar</option>
+          <option value="USD">USD</option>
+          <option value="EUR">EUR</option>
+          <option value="GBP">GBP</option>
+          <option value="JPY">JPY</option>
+          <option value="AUD">AUD</option>
+          <option value="CAD">CAD</option>
+          <option value="CHF">CHF</option>
+          <option value="CNY">CNY</option>
+          <option value="SEK">SEK</option>
+          <option value="NZD">NZD</option>
         </select>
       </div>
       <div className="input-group">
-        <input type="number" value={amount2} onChange={handleAmount2Change} />
+        <input type="text" value={amount2} onChange={handleAmount2Change} />
         <select value={currency2} onChange={handleCurrency2Change}>
-          <option value="EUR">Euro</option>
-          <option value="USD">United States Dollar</option>
-          <option value="GBP">British Pound</option>
-          <option value="JPY">Japanese Yen</option>
-          <option value="AUD">Australian Dollar</option>
-          <option value="CAD">Canadian Dollar</option>
-          <option value="CHF">Swiss Franc</option>
-          <option value="CNY">Chinese Yuan</option>
-          <option value="SEK">Swedish Krona</option>
-          <option value="NZD">New Zealand Dollar</option>
+          <option value="EUR">EUR</option>
+          <option value="USD">USD</option>
+          <option value="GBP">GBP</option>
+          <option value="JPY">JPY</option>
+          <option value="AUD">AUD</option>
+          <option value="CAD">CAD</option>
+          <option value="CHF">CHF</option>
+          <option value="CNY">CNY</option>
+          <option value="SEK">SEK</option>
+          <option value="NZD">NZD</option>
         </select>
       </div>
     </div>

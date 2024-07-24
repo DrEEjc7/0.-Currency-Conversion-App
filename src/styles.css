@@ -58,13 +58,25 @@ input, select {
   font-family: 'Open Sans', sans-serif;
 }
 
+
 input {
-  flex-grow: 1;
-  margin-right: 10px;
+  flex-grow: 3;
+  padding: 10px;
+  font-size: 1em;
+  border: 1px solid #dadce0;
+  border-radius: 4px 0 0 4px;
+  font-family: 'Open Sans', sans-serif;
 }
 
 select {
-  width: 50%;
+  flex-grow: 1;
+  padding: 10px;
+  font-size: 1em;
+  border: 1px solid #dadce0;
+  border-radius: 0 4px 4px 0;
+  border-left: none;
+  font-family: 'Open Sans', sans-serif;
+  background-color: #f8f9fa;
 }
 
 @media (max-width: 480px) {
