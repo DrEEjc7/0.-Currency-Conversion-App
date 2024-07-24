@@ -117,28 +117,30 @@ const CurrencyConverter = () => {
   };
 
   return (
-    <div className="converter">
-      <div className="result">
+    <div className="converter-widget">
+      <div className="converter-result">
         <h2>{amount1} {currency1} equals</h2>
         <h1>{amount2} {currency2}</h1>
-        <p>{exchangeTime}</p>
+        <p className="exchange-time">{exchangeTime}</p>
         {error && <p className="error">{error}</p>}
       </div>
-      <div className="input-group">
-        <input type="text" value={amount1} onChange={handleAmount1Change} />
-        <select value={currency1} onChange={handleCurrency1Change}>
-          {Object.keys(rates).map(currency => (
-            <option key={currency} value={currency}>{currency}</option>
-          ))}
-        </select>
-      </div>
-      <div className="input-group">
-        <input type="text" value={amount2} onChange={handleAmount2Change} />
-        <select value={currency2} onChange={handleCurrency2Change}>
-          {Object.keys(rates).map(currency => (
-            <option key={currency} value={currency}>{currency}</option>
-          ))}
-        </select>
+      <div className="converter-inputs">
+        <div className="input-group">
+          <input type="text" value={amount1} onChange={handleAmount1Change} />
+          <select value={currency1} onChange={handleCurrency1Change}>
+            {Object.keys(rates).map(currency => (
+              <option key={currency} value={currency}>{currency}</option>
+            ))}
+          </select>
+        </div>
+        <div className="input-group">
+          <input type="text" value={amount2} onChange={handleAmount2Change} />
+          <select value={currency2} onChange={handleCurrency2Change}>
+            {Object.keys(rates).map(currency => (
+              <option key={currency} value={currency}>{currency}</option>
+            ))}
+          </select>
+        </div>
       </div>
       <p className="exchange-rate">{exchangeRate}</p>
     </div>
