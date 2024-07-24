@@ -1,7 +1,9 @@
 .converter-widget {
   font-family: 'Open Sans', sans-serif;
-  max-width: 300px;
+  width: 100%;
+  max-width: 100%;
   padding: 15px;
+  box-sizing: border-box;
   background-color: #ffffff;
 }
 
@@ -79,10 +81,3 @@
   .converter-result h2 {
     font-size: 0.9em;
   }
-
-  .converter-inputs input,
-  .converter-inputs select {
-    font-size: 0.9em;
-    padding: 6px;
-  }
-}
