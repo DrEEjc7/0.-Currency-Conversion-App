@@ -2,7 +2,7 @@
   font-family: 'Open Sans', sans-serif;
   width: 100%;
   max-width: 350px;
-  padding: 15px;
+  padding: 1rem;
   box-sizing: border-box;
   background-color: #ffffff;
 }
@@ -17,19 +17,19 @@
 }
 
 .converter-result h1 {
-  font-size: 1.8em;
+  font-size: 1.8rem;
   color: #202124;
   font-weight: 600;
 }
 
 .converter-result h2 {
-  font-size: 1em;
+  font-size: 1rem;
   color: #5f6368;
   font-weight: 400;
 }
 
 .exchange-time {
-  font-size: 0.8em;
+  font-size: 0.8rem;
   color: #5f6368;
   margin: 5px 0;
 }
@@ -42,7 +42,7 @@
 .converter-inputs input {
   flex-grow: 2;
   padding: 8px;
-  font-size: 1em;
+  font-size: 1rem;
   border: 1px solid #dadce0;
   border-radius: 4px 0 0 4px;
 }
@@ -50,7 +50,7 @@
 .converter-inputs select {
   flex-grow: 1;
   padding: 8px;
-  font-size: 1em;
+  font-size: 1rem;
   border: 1px solid #dadce0;
   border-left: none;
   border-radius: 0 4px 4px 0;
@@ -58,24 +58,24 @@
 }
 
 .exchange-rate {
-  font-size: 0.9em;
+  font-size: 0.9rem;
   color: #5f6368;
   margin-top: 10px;
 }
 
 .error {
   color: #d32f2f;
-  font-size: 0.9em;
+  font-size: 0.9rem;
   margin-top: 10px;
 }
 
-@media (max-width: 320px) {
+@media (max-width: 300px) {
   .converter-widget {
     padding: 10px;
   }
 
   .converter-result h1 {
-    font-size: 1.5em;
+    font-size: 1.5rem;
   }
 
   .converter-result h2 {
