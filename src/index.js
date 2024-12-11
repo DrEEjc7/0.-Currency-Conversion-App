@@ -1,7 +1,14 @@
 import { h, render } from 'preact';
 import { useState, useEffect } from 'preact/hooks';
+import { createClient } from '@supabase/supabase-js';
 import './styles.css';
 
+// Supabase configuration
+const SUPABASE_URL = 'https://sosjdhqjppspfobpnzsi.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNvc2pkaHFqcHBzcGZvYnBuenNpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzM5MzcwNTIsImV4cCI6MjA0OTUxMzA1Mn0.qOU80IwP2-1FncyIUTN1bcpEC3evbic_MJbwFXlPcfQ';
+const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// External API configuration
 const API_KEY = 'cd4b0dcb2ae44818adee9d2420c46c84';
 const BASE_URL = 'https://api.currencyfreaks.com/latest?apikey=';
 
@@ -20,37 +27,53 @@ const CurrencyConverter = () => {
   const parseNumber = (str) => parseFloat(str.replace(',', '.'));
 
   const fetchExchangeRates = async () => {
-    const storedRates = localStorage.getItem('exchangeRates');
-    const storedTimestamp = localStorage.getItem('exchangeRatesTimestamp');
+    try {
+      // Check if rates are already stored in Supabase
+      const { data, error } = await supabase
+        .from('currency_rates')
+        .select('*')
+        .order('updated_at', { ascending: false })
+        .limit(1);
 
-    if (storedRates && storedTimestamp) {
-      const currentTime = new Date().getTime();
-      const storedTime = parseInt(storedTimestamp);
+      if (error) throw error;
 
-      if (currentTime - storedTime < 12 * 60 * 60 * 1000) {
-        setRates(JSON.parse(storedRates));
-        setExchangeTime(`Exchange Time: ${new Date(storedTime).toLocaleString()}`);
-        return;
+      if (data && data.length > 0) {
+        // Use stored rates
+        setRates(data[0].rates);
+        setExchangeTime(`Exchange Time: ${new Date(data[0].updated_at).toLocaleString()}`);
+      } else {
+        // Fetch from external API if no stored data
+        await fetchAndStoreRates();
       }
+    } catch (err) {
+      console.error('Error fetching rates:', err);
+      setError(`Failed to fetch rates: ${err.message}`);
     }
+  };
 
+  const fetchAndStoreRates = async () => {
     try {
       const response = await fetch(`${BASE_URL}${API_KEY}`);
       const data = await response.json();
+
       if (data.rates) {
+        // Store rates in Supabase
+        const { error } = await supabase.from('currency_rates').insert([
+          { base_currency: data.base, rates: data.rates, updated_at: new Date().toISOString() }
+        ]);
+
+        if (error) throw error;
+
+        // Set rates and update time in UI
         setRates(data.rates);
-        const date = new Date(data.date);
-        const timeString = `Exchange Time: ${date.toLocaleString()}`;
-        setExchangeTime(timeString);
-        localStorage.setItem('exchangeRates', JSON.stringify(data.rates));
-        localStorage.setItem('exchangeRatesTimestamp', date.getTime().toString());
+        setExchangeTime(`Exchange Time: ${new Date().toLocaleString()}`);
         setError(null);
       } else {
-        throw new Error('Failed to fetch rates');
+        throw new Error('Failed to fetch rates from external API');
       }
     } catch (error) {
-      console.error('Error fetching exchange rates:', error);
-      setError(`Failed to fetch latest rates: ${error.message}. Using stored rates.`);
+      console.error('Error fetching and storing rates:', error);
+      setError(`Failed to fetch rates: ${error.message}`);
     }
   };
 
